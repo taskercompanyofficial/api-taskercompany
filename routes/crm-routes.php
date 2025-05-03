@@ -39,11 +39,13 @@ Route::post('/crm/complaints/create', [ComplaintController::class, 'store']);
 Route::resource('/routes_meta', RoutesMetaController::class);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/crm/complaints/cancel/{id}', [ComplaintController::class, 'cancleComplaint']);
     Route::resource('/crm/staff', StaffController::class);
     Route::resource('/crm/branches', BranchesController::class);
     Route::resource('/crm/authorized-brands', AuthorizedBrandsController::class);
     Route::resource('/crm/categories', CategoryController::class);
     Route::post('/complaints/send-message-to-customer/{to}', [ComplaintController::class, 'sendMessage']);
+    Route::post('/complaints/schedule', [ComplaintController::class, 'scedualeComplaint']);
     Route::resource('/crm/complaints', ComplaintController::class);
     Route::get('/crm/fetch-workers', [FetchCortroller::class, 'fetchWorkers']);
     Route::get('/crm/fetch-branches-ids', [FetchCortroller::class, 'fetchBranches']);
@@ -52,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/crm/dashboard-status-data', [DashboardController::class, 'getStatusChartData']);
     Route::get('/crm/dashboard-complaints-by-brand', [DashboardController::class, 'getComplaintStatusByBrand']);
     Route::get('/crm/complaint-history/{id}', [ComplaintController::class, 'getComplaintHistory']);
+
     Route::resource('/crm/inventory', InventoryController::class);
     Route::get('/crm/daily-attendance-stats', [CrmAttendanceController::class, 'getDailyStats']);
     Route::post('/crm/attendance/mark-present/{id}', [CrmAttendanceController::class, 'markPresent']);

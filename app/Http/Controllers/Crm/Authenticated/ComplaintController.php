@@ -7,13 +7,13 @@ use App\Models\AssignedJobs;
 use App\Models\Complaint;
 use App\Models\ComplaintHistory;
 use App\Models\Notifications;
+use App\Models\Scedular;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use GuzzleHttp\Client;
 use Illuminate\Validation\ValidationException;
 use App\Events\NewNotification;
-use App\Models\ChatRoom;
 use App\Models\StoreUserSpecific;
 
 class ComplaintController extends Controller
@@ -167,6 +167,7 @@ class ComplaintController extends Controller
             $payload['complain_num'] = 'TC' . now()->format('dmY') . $newId;
 
             $complaint = Complaint::create($payload);
+            $complaint->refresh();
             DB::commit();
 
             $title = "New Complaint";
@@ -187,7 +188,7 @@ class ComplaintController extends Controller
             return response()->json([
                 "status" => "success",
                 "message" => "Complaint has been created successfully",
-                "data" => $complaint,
+                "data" => $complaint->fresh(), // Get fresh instance with all attributes
             ], 201);
         } catch (ValidationException $e) {
             DB::rollBack();
@@ -270,7 +271,7 @@ class ComplaintController extends Controller
             $complaint->update($payload);
 
             if ($request->user()->id == $payload['technician']) {
-                $title =  $request->user()->full_name . " has updated a complaint";
+                $title = $request->user()->full_name . " has updated a complaint";
                 $message = $request->user()->full_name . " has updated a complaint ID" . $complaint->complain_num;
                 $status = "info";
                 $link = "https://taskercompany.com/crm/complaints/" . $complaint->id;
@@ -290,12 +291,12 @@ class ComplaintController extends Controller
                 ? 'Complaint updated with no field changes'
                 : 'Complaint updated: ' . implode(', ', $changes);
 
-            ComplaintHistory::create([
-                'complaint_id' => $complaint->id,
-                'user_id' => $request->user()->id,
-                'data' => json_encode($complaint),
-                'description' => $description
-            ]);
+            // ComplaintHistory::create([
+            //     'complaint_id' => $complaint->id,
+            //     'user_id' => $request->user()->id,
+            //     'data' => json_encode($complaint),
+            //     'description' => $description
+            // ]);
 
             // Handle technician assignment and notification
             if (!empty($payload['send_message_to_technician'])) {
@@ -386,6 +387,83 @@ class ComplaintController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to delete complaint: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function cancleComplaint($id, Request $request)
+    {
+        try {
+            $payload = $request->validate([
+                'reason' => 'required|string',
+                'details' => 'required|string',
+                'file' => 'nullable|file'
+            ]);
+
+            $complaint = Complaint::findOrFail($id);
+            $complaint->status = 'cancelled';
+            $complaint->cancellation_reason = $payload['reason'];
+            $complaint->cancellation_details = $payload['details'];
+
+            if ($request->hasFile('file')) {
+                // Handle file upload if needed
+                $file = $request->file('file');
+                $path = $file->store('cancelled_complaints', 'public');
+                $complaint->cancellation_file = $path;
+            }
+
+            $complaint->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Complaint has been cancelled successfully',
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error("Error cancelling complaint: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to cancel complaint'
+            ], 500);
+        }
+    }
+    public function scedualeComplaint(Request $request)
+    {
+        try {
+            $payload = $request->validate([
+                'complaint_id' => 'required|integer|exists:complaints,id',
+                'schedule_date' => 'required|date|after:now',
+                'schedule_time' => 'required|date_format:H:i',
+                'remarks' => 'nullable|string|max:500'
+            ]);
+
+            $complaint = Complaint::findOrFail($payload['complaint_id']);
+
+            // Update complaint status to scheduled
+            $complaint->status = 'scheduled';
+            $complaint->save();
+            $sceduale = Scedular::create($payload);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Complaint has been scheduled successfully',
+                'data' => $complaint
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error("Error scheduling complaint: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to schedule complaint'
             ], 500);
         }
     }

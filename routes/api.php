@@ -28,6 +28,7 @@ Route::post('/whatsapp/recieved-new', function (Request $request) {
     // If token is invalid, return an error
     return response()->json(['message' => 'Invalid token'], 400);
 });
+Route::post('/download/files', [ImageUploaderController::class, 'downloadFile']);
 
 Route::middleware(['auth:sanctum'])->post('/upload-image', [ImageUploaderController::class, 'store']);
 

@@ -41,6 +41,9 @@ class Complaint extends Model
         'happy_call_remarks',
         'call_status',
         'files',
+        'cancellation_reason',
+        'cancellation_details',
+        'cancellation_file',
     ];
 
     public function user()

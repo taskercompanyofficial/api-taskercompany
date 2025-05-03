@@ -155,4 +155,75 @@ class ImageUploaderController extends Controller
             'message' => 'File deleted successfully'
         ]);
     }
+    public function downloadFile(Request $request)
+    {
+        $request->validate([
+            'files' => 'required|array',
+            'files.*' => 'required|string'
+        ]);
+
+        // Extract just the filenames from the full paths
+        $fileNames = $request->input('files'); // now directly receiving file names
+        $files = ImageUploader::whereIn('file_name', $fileNames)->get();
+
+
+        if ($files->isEmpty()) {
+            return response()->json([
+                'message' => 'No files found: ' . implode(', ', $fileNames)
+            ], 404);
+        }
+
+        if (count($files) === 1) {
+            // If only one file, download directly
+            $file = $files->first();
+            $filePath = storage_path('app/public/' . $file->document_path);
+
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found in storage'
+                ], 404);
+            }
+
+            return response()->download(
+                $filePath,
+                $file->file_name,
+                ['Content-Type' => $file->mime_type]
+            );
+        }
+
+        // Create temp directory if it doesn't exist
+        $tempPath = storage_path('app/temp');
+        if (!file_exists($tempPath)) {
+            mkdir($tempPath, 0777, true);
+        }
+
+        // Create zip file
+        $zip = new \ZipArchive();
+        $zipFileName = 'files_' . time() . '.zip';
+        $zipPath = $tempPath . '/' . $zipFileName;
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            foreach ($files as $file) {
+                $filePath = storage_path('app/public/' . $file->document_path);
+                if (file_exists($filePath)) {
+                    // Add file to zip with its original name and preserve file permissions
+                    $zip->addFile($filePath, $file->file_name);
+                    $zip->setMtimeIndex($zip->numFiles - 1, time());
+                }
+            }
+            $zip->close();
+
+            // Download zip file and then delete it
+            return response()->download($zipPath, $zipFileName, [
+                'Content-Type' => 'application/zip'
+            ])->deleteFileAfterSend(true);
+        }
+
+        return response()->json([
+            'message' => 'Error creating zip file'
+        ], 500);
+    }
+
+
+
 }
