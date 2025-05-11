@@ -9,6 +9,11 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    public function getComplaints()
+    {
+        $complaints = Complaint::with('user', 'brand', 'branch', 'technician')->get();
+        return $complaints;
+    }
     public function complaintByStatus(Request $request)
     {
         // Get the `from` and `to` parameters from the request
@@ -221,9 +226,11 @@ class DashboardController extends Controller
         // Get brand-wise installation data
         $brandInstallations = (clone $baseQuery)
             ->whereNotIn('status', $completedStatuses)
-            ->with(['brand' => function ($query) {
-                $query->select('id', 'name');
-            }])
+            ->with([
+                'brand' => function ($query) {
+                    $query->select('id', 'name');
+                }
+            ])
             ->get()
             ->groupBy('brand_id')
             ->map(function ($complaints, $brandId) use ($openStatus, $completedStatuses) {

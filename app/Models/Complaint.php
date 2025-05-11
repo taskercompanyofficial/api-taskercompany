@@ -19,6 +19,7 @@ class Complaint extends Model
         'applicant_whatsapp',
         'extra_numbers',
         'reference_by',
+        'dealer',
         'applicant_adress',
         'description',
         'branch_id',
@@ -32,7 +33,7 @@ class Complaint extends Model
         'complete_date',
         'amount',
         'product_type',
-        'technician',
+        'technician', // Technician user ID
         'status',
         'working_details',
         'complaint_type',
@@ -40,6 +41,7 @@ class Complaint extends Model
         'warranty_type',
         'happy_call_remarks',
         'call_status',
+        'priority',
         'files',
         'cancellation_reason',
         'cancellation_details',
@@ -48,16 +50,21 @@ class Complaint extends Model
 
     public function user()
     {
-        return $this->belongsTo(CrmUser::class);
+        return $this->belongsTo(Staff::class, 'user_id');
+    }
+
+    public function technician()
+    {
+        return $this->belongsTo(Staff::class, 'technician');
     }
 
     public function brand()
     {
-        return $this->belongsTo(AuthorizedBrands::class);
-    }
-    public function branch()
-    {
-        return $this->belongsTo(Branches::class);
+        return $this->belongsTo(AuthorizedBrands::class, 'brand_id');
     }
 
+    public function branch()
+    {
+        return $this->belongsTo(Branches::class, 'branch_id');
+    }
 }
