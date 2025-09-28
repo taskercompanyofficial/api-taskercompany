@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: Backend API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com
+  - url: http://localhost:8000
+paths:
+  /api/health-check:
+    post:
+      summary: Health check
+      responses:
+        '200': { description: OK }
+  /api/user:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get authenticated user
+      responses:
+        '200': { description: OK }
+  /api/app/auth/login:
+    post:
+      summary: App login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: OK }
+  /api/messages/chat-rooms:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List chat rooms
+      responses:
+        '200': { description: OK }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
