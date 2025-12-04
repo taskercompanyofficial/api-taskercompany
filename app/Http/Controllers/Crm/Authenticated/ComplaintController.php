@@ -33,6 +33,7 @@ class ComplaintController extends Controller
             $q = trim($request->input('q', ''));
             $status = $request->input('status');
             $brand_id = $request->input('brand_id');
+            $branch_id = $request->input('branch_id');
             $from = $request->input('from');
             $to = $request->input('to');
 
@@ -67,6 +68,7 @@ class ComplaintController extends Controller
                     $query->whereIn('status', $statuses);
                 })
                 ->when($brand_id, fn($query) => $query->where('brand_id', $brand_id))
+                ->when($branch_id, fn($query) => $query->where('branch_id', $branch_id))
                 ->when($from && $to, fn($query) => $query->whereBetween('created_at', [$from, $to]));
 
             // Apply filters dynamically
