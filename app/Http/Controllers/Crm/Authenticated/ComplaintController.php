@@ -116,7 +116,7 @@ class ComplaintController extends Controller
             $complaintsData = $complaints->map(function ($complaint) {
                 $data = $complaint->toArray();
                 $data['brand_id'] = $complaint->brand->name ?? null;
-                $data['branch_id'] = $complaint->branch->name ?? null;
+                $data['branch_id`'] = $complaint->branch->name ?? null;
                 return $data;
             });
 
