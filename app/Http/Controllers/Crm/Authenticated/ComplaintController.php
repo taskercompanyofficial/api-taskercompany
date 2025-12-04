@@ -209,10 +209,10 @@ class ComplaintController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($id, $complaint)
     {
         try {
-            $complaint = Complaint::with(['brand', 'branch'])->findOrFail($id);
+            $complaint = Complaint::where('id', $id)->where('complaint', $complaint)->with(['brand', 'branch'])->findOrFail($id);
             return response()->json($complaint);
         } catch (\Exception $e) {
             Log::error("Error fetching complaint: " . $e->getMessage());
@@ -254,7 +254,7 @@ class ComplaintController extends Controller
                 'complete_date' => 'nullable|date',
                 'amount' => 'nullable|numeric',
                 'product_type' => 'nullable|string|max:255',
-                'technician' => 'nullable|string',
+                'technician' => 'nullable',
                 'status' => 'required|string|max:50',
                 'complaint_type' => 'nullable|string|max:255',
                 'provided_services' => 'nullable|string',
