@@ -152,6 +152,7 @@ class ComplaintController extends Controller
                 'applicant_whatsapp' => 'required|string|max:20',
                 'applicant_adress' => 'required|string|max:500',
                 'brand_id' => 'required|integer',
+                'branch_id' => 'required|integer',
                 'extra_numbers' => 'nullable|string|max:255',
                 'reference_by' => 'nullable|string|max:255',
                 'product' => 'nullable|string|max:255',
