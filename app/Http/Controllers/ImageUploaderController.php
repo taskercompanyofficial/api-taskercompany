@@ -25,7 +25,7 @@ class ImageUploaderController extends Controller
         try {
             $request->validate([
                 'files' => 'required|array',
-                'files.*' => 'required|file|max:10240', // Max 10MB
+                'files.*' => 'required|file|max:10200040', // Max 10MB
                 'document_type' => 'required|string',
             ]);
 
