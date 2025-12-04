@@ -293,12 +293,12 @@ class ComplaintController extends Controller
                 ? 'Complaint updated with no field changes'
                 : 'Complaint updated: ' . implode(', ', $changes);
 
-            // ComplaintHistory::create([
-            //     'complaint_id' => $complaint->id,
-            //     'user_id' => $request->user()->id,
-            //     'data' => json_encode($complaint),
-            //     'description' => $description
-            // ]);
+            ComplaintHistory::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $request->user()->id,
+                'data' => json_encode($complaint),
+                'description' => $description
+            ]);
 
             // Handle technician assignment and notification
             if (!empty($payload['send_message_to_technician'])) {
