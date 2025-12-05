@@ -33,6 +33,7 @@ class ComplaintController extends Controller
             $q = trim($request->input('q', ''));
             $status = $request->input('status');
             $brand_id = $request->input('brand_id');
+            $branch_id = $request->input('branch_id');
             $from = $request->input('from');
             $to = $request->input('to');
 
@@ -67,6 +68,7 @@ class ComplaintController extends Controller
                     $query->whereIn('status', $statuses);
                 })
                 ->when($brand_id, fn($query) => $query->where('brand_id', $brand_id))
+                ->when($branch_id, fn($query) => $query->where('branch_id', $branch_id))
                 ->when($from && $to, fn($query) => $query->whereBetween('created_at', [$from, $to]));
 
             // Apply filters dynamically
@@ -114,7 +116,7 @@ class ComplaintController extends Controller
             $complaintsData = $complaints->map(function ($complaint) {
                 $data = $complaint->toArray();
                 $data['brand_id'] = $complaint->brand->name ?? null;
-                $data['branch_id'] = $complaint->branch->name ?? null;
+                $data['branch_id`'] = $complaint->branch->name ?? null;
                 return $data;
             });
 
@@ -150,6 +152,7 @@ class ComplaintController extends Controller
                 'applicant_whatsapp' => 'required|string|max:20',
                 'applicant_adress' => 'required|string|max:500',
                 'brand_id' => 'required|integer',
+                'branch_id' => 'required|integer',
                 'extra_numbers' => 'nullable|string|max:255',
                 'reference_by' => 'nullable|string|max:255',
                 'product' => 'nullable|string|max:255',
@@ -209,10 +212,10 @@ class ComplaintController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($id, $complaint)
     {
         try {
-            $complaint = Complaint::with(['brand', 'branch'])->findOrFail($id);
+            $complaint = Complaint::where('id', $id)->where('complaint', $complaint)->with(['brand', 'branch'])->findOrFail($id);
             return response()->json($complaint);
         } catch (\Exception $e) {
             Log::error("Error fetching complaint: " . $e->getMessage());
@@ -254,7 +257,7 @@ class ComplaintController extends Controller
                 'complete_date' => 'nullable|date',
                 'amount' => 'nullable|numeric',
                 'product_type' => 'nullable|string|max:255',
-                'technician' => 'nullable|string',
+                'technician' => 'nullable',
                 'status' => 'required|string|max:50',
                 'complaint_type' => 'nullable|string|max:255',
                 'provided_services' => 'nullable|string',
@@ -291,12 +294,12 @@ class ComplaintController extends Controller
                 ? 'Complaint updated with no field changes'
                 : 'Complaint updated: ' . implode(', ', $changes);
 
-            // ComplaintHistory::create([
-            //     'complaint_id' => $complaint->id,
-            //     'user_id' => $request->user()->id,
-            //     'data' => json_encode($complaint),
-            //     'description' => $description
-            // ]);
+            ComplaintHistory::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $request->user()->id,
+                'data' => json_encode($complaint),
+                'description' => $description
+            ]);
 
             // Handle technician assignment and notification
             if (!empty($payload['send_message_to_technician'])) {
