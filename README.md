@@ -21,6 +21,22 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Documentation
+
+Project-specific API docs are available under `docs/`:
+- `docs/overview.md`
+- `docs/api-general.md`
+- `docs/api-application.md`
+- `docs/api-crm.md`
+- `docs/api-worker.md`
+- `docs/api-messages.md`
+- `docs/commands.md`
+- `docs/events.md`
+- `docs/middleware.md`
+- `docs/openapi.yaml`
+
+Quick auth note: protected endpoints require `Authorization: Bearer <token>`.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
