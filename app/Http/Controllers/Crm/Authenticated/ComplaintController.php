@@ -53,13 +53,19 @@ class ComplaintController extends Controller
                 ])
                 ->when($q, function ($query) use ($q) {
                     $query->where(function ($query) use ($q) {
-                        $query->where('complain_num', 'like', "%$q%")
-                            ->orWhere('applicant_name', 'like', "%$q%")
-                            ->orWhere('brand_complaint_no', 'like', "%$q%")
-                            ->orWhere('applicant_email', 'like', "%$q%")
-                            ->orWhere('applicant_phone', 'like', "%$q%")
-                            ->orWhere('applicant_whatsapp', 'like', "%$q%")
-                            ->orWhere('applicant_adress', 'like', "%$q%");
+                        $searchableFields = [
+                            'user_id', 'complain_num', 'brand_complaint_no', 'applicant_name', 'applicant_email',
+                            'applicant_phone', 'applicant_whatsapp', 'extra_numbers', 'reference_by', 'dealer',
+                            'applicant_adress', 'description', 'branch_id', 'brand_id', 'product', 'model',
+                            'serial_number_ind', 'serial_number_oud', 'mq_nmb', 'p_date', 'complete_date',
+                            'amount', 'product_type', 'technician', 'status', 'working_details', 'complaint_type',
+                            'provided_services', 'warranty_type', 'happy_call_remarks', 'call_status', 'priority',
+                            'files', 'cancellation_reason', 'cancellation_details', 'cancellation_file'
+                        ];
+
+                        foreach ($searchableFields as $field) {
+                            $query->orWhere($field, 'like', "%$q%");
+                        }
                     });
                 })
                 // Handle multiple statuses (dot-separated values)
