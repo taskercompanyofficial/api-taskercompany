@@ -255,10 +255,10 @@ class ComplaintController extends Controller
     public function show($id)
     {
         try {
-            $complaint = Complaint::with(['brand', 'branch'])->find($id);
+            $complaint = Complaint::with(['brand', 'branch', 'technician'])->find($id);
 
             if (!$complaint) {
-                $complaint = Complaint::with(['brand', 'branch'])->where('complain_num', $id)->first();
+                $complaint = Complaint::with(['brand', 'branch', 'technician'])->where('complain_num', $id)->first();
             }
 
             if (!$complaint) {
