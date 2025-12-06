@@ -113,12 +113,7 @@ class ComplaintController extends Controller
             // Pagination
             $complaints = $complaintsQuery->paginate($perPage, ['*'], 'page', $page);
 
-            $complaintsData = $complaints->map(function ($complaint) {
-                $data = $complaint->toArray();
-                $data['brand_id'] = $complaint->brand->name ?? null;
-                $data['branch_id`'] = $complaint->branch->name ?? null;
-                return $data;
-            });
+            $complaintsData = $complaints->getCollection();
 
             return response()->json([
                 'data' => $complaintsData,
@@ -212,17 +207,29 @@ class ComplaintController extends Controller
         }
     }
 
-    public function show($id, $complaint)
+    public function show($id)
     {
         try {
-            $complaint = Complaint::where('id', $id)->where('complaint', $complaint)->with(['brand', 'branch'])->findOrFail($id);
+            $complaint = Complaint::with(['brand', 'branch'])->find($id);
+
+            if (!$complaint) {
+                $complaint = Complaint::with(['brand', 'branch'])->where('complain_num', $id)->first();
+            }
+
+            if (!$complaint) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Complaint not found'
+                ], 404);
+            }
+
             return response()->json($complaint);
         } catch (\Exception $e) {
             Log::error("Error fetching complaint: " . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Complaint not found'
-            ], 404);
+                'message' => 'Failed to fetch complaint due to an unexpected error.'
+            ], 500);
         }
     }
 
