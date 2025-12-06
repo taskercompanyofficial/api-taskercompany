@@ -42,6 +42,43 @@ class ComplaintController extends Controller
             $logic = strtolower($request->input('logic', 'AND'));
             $sort = json_decode($request->input('sort', '[]'), true);
 
+            // Handle multiple statuses (dot-separated values) or apply default statuses
+            $defaultStatuses = [
+                'open',
+                'objection',
+                'hold-by-brand',
+                'hold-by-customer',
+                'assigned-to-technician',
+                'part-demand',
+                'service-lifting',
+                'party-lifting',
+                'unit-in-service-center',
+                'reinstallation-pending',
+                'kit-in-service-center',
+                'part-in-service-center',
+                'delivery-pending',
+                'quotation-applied',
+                'installation-pending',
+                'in-progress',
+                'delivered',
+                'pending-by-brand',
+                'feedback-pending',
+                'completed',
+                'cashback-dealer',
+                'warrenty-slip-cash',
+                'code-pending',
+                'amount-pending',
+                'closed',
+                'cancelled',
+            ];
+
+            $statusesToFilter = [];
+            if ($status) {
+                $statusesToFilter = array_map('trim', explode('.', $status));
+            } else {
+                $statusesToFilter = $defaultStatuses;
+            }
+
             $complaintsQuery = Complaint::query()
                 ->with(['brand', 'branch'])
                 ->select('complaints.*') // Ensures we get all columns
@@ -68,11 +105,7 @@ class ComplaintController extends Controller
                         }
                     });
                 })
-                // Handle multiple statuses (dot-separated values)
-                ->when($status, function ($query) use ($status) {
-                    $statuses = array_map('trim', explode('.', $status)); // Convert string to array
-                    $query->whereIn('status', $statuses);
-                })
+                ->whereIn('status', $statusesToFilter) // Apply determined statuses
                 ->when($brand_id, fn($query) => $query->where('brand_id', $brand_id))
                 ->when($branch_id, fn($query) => $query->where('branch_id', $branch_id))
                 ->when($from && $to, fn($query) => $query->whereBetween('created_at', [$from, $to]));
